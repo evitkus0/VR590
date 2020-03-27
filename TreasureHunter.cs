@@ -39,14 +39,14 @@ public class TreasureHunter : MonoBehaviour
 
     int totalPoints = 0;
     int totalItems = 0;
+    int d;
 
     //public GameObject collectible1;
     void Start()
     {
-        //d(Vector3/Vector2 A,Vector3/Vector2 B,Vector3/Vector2 C)=(A.x−B.x)(C.y−B.y)−(A.y−B.y)(C.x−B.x)
-        //d(Camera.position+prevForwardVector, Camera.position, Camera.position + Camera.forward)
-        //prevForwardVector=Camera.forward
-
+        d = D(Camera.position+prevForwardVector, Camera.position, Camera.position + Camera.forward);
+        prevForwardVector = Camera.forward;
+        prevYawRelativeToCenter = angleBetweenVectors(Camera.forward,VRTrackingOrigin.position-Camera.position);
 
 
         /*
@@ -67,6 +67,15 @@ public class TreasureHunter : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        howMuchUserRotated = angleBetweenVectors(prevForwardVector,Camera.forward);
+        directionUserRotated = (d(Camera.position+prevForwardVector, Camera.position, Camera.position + Camera.forward)<0)?1:-1;
+        deltaYawRelativeToCenter = prevYawRelativeToCenter-angleBetweenVectors(Camera.forward,VRTrackingOrigin.position-Camera.position);
+        distanceFromCenter = (Camera.position-VRTrackingOrigin.position).magnitude;
+        longestDimensionOfPE = 5;
+        howMuchToAccelerate=((deltaYawRelativeToCenter<0)? -decelerateThreshold [.13]: accelerateThreshold[.30]) * howMuchUserRotated * directionUserRotated * clamp(distanceFromCenter/longestDimensionOfPE/2,0,1);
+        VRTrackingOrigin.RotateAround(Camera.position,(0,1,0),howMuchToAccel);
+        prevForwardVector=Camera.forward;
+        prevYawRelativeToCenter=angleBetweenVectors(Camera.forward,VRTrackingOrigin.position-Camera.position);
 
 
         /*
@@ -197,6 +206,28 @@ public class TreasureHunter : MonoBehaviour
         */
 
     } //end of update
+
+    public int D(Vector3 A,Vector3 B,Vector3 C){ //right < 0 = true, left > 0 = false
+        return (A.x - B.x)(C.z - B.z) - (A.z - B.z)(C.x - B.x);
+    }
+
+    public int angleBetweenVectors(Vector2 A, Vector2 B){
+        return arccos(dot(normalize(A),normalize(B)));
+    }
+
+
+    /*public int directionUserRotated(int d){ //right < 0 = true, left > 0 = false
+        return d<0?1:-1;
+    }*/
+
+    //d(Vector3/Vector2 A,Vector3/Vector2 B,Vector3/Vector2 C)=(A.x−B.x)(C.y−B.y)−(A.y−B.y)(C.x−B.x)
+        //d(Camera.position+prevForwardVector, Camera.position, Camera.position + Camera.forward)
+
+
+    /*
+        OLD CODE
+    */
+
     void letGo()
     {
         if (thingIGrabbed)
@@ -344,7 +375,9 @@ public class TreasureHunter : MonoBehaviour
         return closestObjectSoFar;
     }
 
-
+    /*
+        OLD CODE
+    */
 
 
 
